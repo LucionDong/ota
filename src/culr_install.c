@@ -47,20 +47,34 @@ int wget_install(const char *url, const char *recv_md5_string) {
     unsigned char md5_res[MD5_DIGEST_LENGTH];
     curl = curl_easy_init();
     if (curl) {
-        fp = fopen(outfilename, "rb");
+        fp = fopen(outfilename, "wb+");
         if (fp == NULL) {
-            perror("fopen");
+            LOG_ERROR("fopen error");
+            // perror("fopen");
             return -1;
         }
 
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+        //不验证对等方证书
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        //不验证主机证书
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
         res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
             perror("curl_easy_perform");
         }
         curl_easy_cleanup(curl);
+        fclose(fp);
+
+        fp = fopen(outfilename, "rb");
+        if (fp == NULL) {
+            LOG_ERROR("fopen error");
+            return -1;
+        }
         compute_md5(fp, md5_res);
         md5_to_string(md5_res, md5_string);
         fclose(fp);
