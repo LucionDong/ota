@@ -1,0 +1,12 @@
+compile_flags.txt
+
+:Author: dongbin
+:Email: dongbin0625@163.com
+:Date: 2023-12-27 13:53
+
+-I/home/lucion/work/plugins/tools/armv5l/lib/libc/usr/include
+-I/home/lucion/work/plugins/tools/armv5l/lib/libc/usr/local/include
+-I/sh/home/lucion/work/plugins/old-easeview-plugin-manager/include/esvcpm
+-I/home/lucion/work/plugins/old-easeview-plugin-manager/src
+-I/home/lucion/work/plugins/old-easeview-plugin-manager/plugins
+
