@@ -1,3 +1,0 @@
-/home/lucion/work/plugins/easecpm_ota/build/CMakeFiles/ota_update.dir
-/home/lucion/work/plugins/easecpm_ota/build/CMakeFiles/edit_cache.dir
-/home/lucion/work/plugins/easecpm_ota/build/CMakeFiles/rebuild_cache.dir
