@@ -47,7 +47,7 @@ int wget_install(const char *url, const char *recv_md5_string) {
     unsigned char md5_res[MD5_DIGEST_LENGTH];
     curl = curl_easy_init();
     if (curl) {
-        fp = fopen(outfilename, "wb+");
+        fp = fopen(outfilename, "wb");
         if (fp == NULL) {
             LOG_ERROR("fopen error");
             // perror("fopen");

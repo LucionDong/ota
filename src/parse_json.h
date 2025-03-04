@@ -10,15 +10,21 @@
 
 #include <wchar.h>
 #define ENVIRONMENT_VAR "URL_VAR"
-#define DOWNLOAD_PATH "/root/ota/ota.tar.gz"
-#define OTA_PACK_DATA "/root/ota/data.tar.gz"
-#define OTA_PACK_CONTROL "/root/ota/control.tar.gz"
-#define OTA_PACK_DEBIAN "/root/ota/debian-binary"
-
-#define CONTROL_ELEMENT_PREINST "/root/ota/preinst.sh"
-#define CONTROL_ELEMENT_POSTINST "/root/ota/postinst.sh"
-#define CONTROL_ELEMENT_PRERM "/root/ota/prerm.sh"
-
+// #define DOWNLOAD_PATH "/root/ota/ota.tar.gz"
+#define DOWNLOAD_PATH "/usr/local/ota/ota.tar.gz"
+// #define OTA_PACK_DATA "/root/ota/data.tar.gz"
+#define OTA_PACK_DATA "/usr/local/ota/data.tar.gz"
+// #define OTA_PACK_CONTROL "/root/ota/control.tar.gz"
+#define OTA_PACK_CONTROL "/usr/local/ota/control.tar.gz"
+// #define OTA_PACK_DEBIAN "/root/ota/debian-binary"
+#define OTA_PACK_DEBIAN "/usr/local/ota/debian-binary"
+#define CONTROL_ELEMENT_PREINST "/usr/local/ota/preinst.sh"
+#define CONTROL_ELEMENT_POSTINST "/usr/local/ota/postinst.sh"
+#define CONTROL_ELEMENT_PRERM "/usr/local/ota/prerm.sh"
+// #define CONTROL_ELEMENT_PREINST "/root/ota/preinst.sh"
+// #define CONTROL_ELEMENT_POSTINST "/root/ota/postinst.sh"
+// #define CONTROL_ELEMENT_PRERM "/root/ota/prerm.sh"
+//
 #define SERVICE_FILE_PATH "/usr/local/iot/service/"
 
 #include "mqtt_async_recv_send.h"

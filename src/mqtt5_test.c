@@ -153,6 +153,7 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
             //上传版本号
             sprintf(send_topic, "%s/Reply", send_topic);
             parser_service_inform_json_and_piece(root, hash);
+            //读取版本号,并将版本号替换掉hash表中的version
             get_hash_file_path_and_read_version(hash);
             composition_reply_version_json(reply_json, hash);
             MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
@@ -191,14 +192,18 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
                 if (MQTTAsync_sendMessage(mqtt_res->client, send_topic, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
                     LOG_WARN("Failed to start sendMessage");
                 }
+                free(send_to_server_json);
             } else {
-                unpack_tar(DOWNLOAD_PATH);
                 executive_control_sh(reply_json, mqtt_res, send_topic);
+                unpack_tar(DOWNLOAD_PATH);
             }
             break;
         case UPGRADE_PROGRESS:
             //上报进度
             break;
+    }
+    if (hash) {
+        destroy_hash(&hash);
     }
 
     json_decref(reply_json);

@@ -4,6 +4,8 @@
  *
  *
  */
+#include "parse_json.h"
+
 #include <MQTTAsync.h>
 #include <MQTTClient.h>
 #include <MQTTClientPersistence.h>
@@ -19,7 +21,6 @@
 #include "log.h"
 #include "mqtt_async_recv_send.h"
 #include "openssl/sha.h"
-#include "parse_json.h"
 #include "version_hash.h"
 
 int check_download_file_exit() {
@@ -143,6 +144,7 @@ int executive_control_sh(json_t *reply_json, mqtt_res_t *mqtt_res, const char *s
     send_to_server_json = json_dumps(reply_json, 0);
     pubmsg.payload = send_to_server_json;
     pubmsg.payloadlen = strlen(send_to_server_json);
+    // system("find /usr/local/ota/ -mindepth 1 -not -name 'ota_update' -exec rm -rf {} +");
     if (MQTTAsync_sendMessage(mqtt_res->client, send_topic, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
         LOG_WARN("Failed to start sendMessage");
     }
