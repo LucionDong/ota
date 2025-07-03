@@ -22,8 +22,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 
+#include "base_str.h"
 #include "culr_install.h"
 #include "log.h"
 #include "mqtt_async_recv_send.h"
@@ -149,11 +153,11 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
 
     switch (command_type) {
         case SERVICE_INFORM_GET:
-            //解析services中的内容
-            //上传版本号
+            // 解析services中的内容
+            // 上传版本号
             sprintf(send_topic, "%s/Reply", send_topic);
             parser_service_inform_json_and_piece(root, hash);
-            //读取版本号,并将版本号替换掉hash表中的version
+            // 读取版本号,并将版本号替换掉hash表中的version
             get_hash_file_path_and_read_version(hash);
             composition_reply_version_json(reply_json, hash);
             MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
@@ -170,10 +174,10 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
         case SERVICE_INFORM_POST:
             break;
         case UPGRADE_PUSH:
-            //下载url中的内容
-            //对下载的文件进行校验
-            //按顺序调用脚本
-            //调用脚本过程中进行进度上报
+            // 下载url中的内容
+            // 对下载的文件进行校验
+            // 按顺序调用脚本
+            // 调用脚本过程中进行进度上报
             replace_push_with_progress(send_topic);
             url = json_string_value(json_object_get(params, "url"));
             if (!url) {
@@ -196,11 +200,82 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
             } else {
                 executive_control_sh(reply_json, mqtt_res, send_topic);
                 unpack_tar(DOWNLOAD_PATH);
+                system("find /usr/local/ota/ -mindepth 1 -not -name 'ota_update' -exec rm -rf {} +");
             }
             break;
         case UPGRADE_PROGRESS:
-            //上报进度
+            // 上报进度
             break;
+        case SHELL_SCRIPT_PUSH: {
+            // 解析脚本内容
+            int code = 200;
+            const char *script_base64_str = json_string_value(json_object_get(params, "script"));
+            if (!script_base64_str) {
+                LOG_ERROR("script_str is NULL");
+                return -1;
+            }
+            unsigned char *script_str = NULL;
+            size_t script_str_len = 0;
+            if (base64_decode(script_base64_str, &script_str, &script_str_len) == -1) {
+                LOG_ERROR("base64_decode is NULL");
+                return -1;
+            }
+
+            // 创建临时文件
+            char stript_path[] = "/tmp/tmp_scriptXXXXXX";
+            int fd = mkstemp(stript_path);
+            if (fd == -1) {
+                LOG_ERROR("Failed to create tmp file");
+                free(script_str);
+                return -1;
+            }
+
+            write(fd, script_str, script_str_len);
+            close(fd);
+            chmod(stript_path, S_IRWXU);
+
+            // 执行脚本
+            char result[4096] = {0};
+            FILE *fp = popen(stript_path, "r");
+            if (!fp) {
+                LOG_ERROR("Failed to popen");
+                unlink(stript_path);
+                free(script_str);
+                return -1;
+            } else {
+                size_t read_len = fread(result, 1, sizeof(result) - 1, fp);
+                int status = pclose(fp);
+                result[read_len] = '\0';
+
+                if (read_len == 0) {
+                    LOG_WARN("Script produced no output");
+                    strncpy(result, "[No output]", sizeof(result) - 1);
+                }
+
+                char *result_base64_str = NULL;
+                if (base64_encode((unsigned char *) result, &result_base64_str, read_len) == -1) {
+                    LOG_ERROR("base64_encode is NULL");
+                    result_base64_str = strdup("encode error");
+                    code = 400;
+                }
+                LOG_INFO("result_base64_str: %s", result_base64_str);
+                composition_reply_script_result_json(code, reply_json, result_base64_str, tranid);
+                MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
+
+                send_to_server_json = json_dumps(reply_json, 0);
+                pubmsg.payload = send_to_server_json;
+                pubmsg.payloadlen = strlen(send_to_server_json);
+                if (MQTTAsync_sendMessage(mqtt_res->client, SEND_TOPIC_SCRIPT, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
+                    LOG_WARN("Failed to start sendMessage");
+                }
+                LOG_INFO("reply_json: %s", json_dumps(reply_json, JSON_INDENT(2)));
+                free(send_to_server_json);
+                free(result_base64_str);
+                unlink(stript_path);
+            }
+
+            free(script_str);
+        } break;
     }
     if (hash) {
         destroy_hash(&hash);

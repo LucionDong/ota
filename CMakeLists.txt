@@ -17,7 +17,7 @@ if(NOT CMAKE_SYSTEM_NAME)
   set(CMAKE_SYSTEM_NAME "Linux")
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always -Wall -Wextra -g -lpaho-mqtt3a -lpaho-mqtt3c -ljansson -larchive -lcurl -lssl -lcrypto")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always -Wall -Wextra -g -lpaho-mqtt3a -lpaho-mqtt3c -ljansson -larchive -lcurl -lssl -lcrypto -luuid")
 set(CMAKE_C_FLAGS_RELEASE "-O1")
 
 if(NOT DISABLE_ASAN)
@@ -28,18 +28,14 @@ else()
 endif()
 
 set(EASE_CPM_OTA_SRC
+	src/base_str.c
 	src/mqtt5_test.c
-	# src/mqtt_async.c
-	# src/parse_json.c
 	src/culr_install.c
 	src/parse_json.c
 	src/read_file.c
 	src/log.c
 	src/version_hash.c
-	# src/rs232_recv.c
-	# src/main.c
-	# src/mcurs232/mcurs232_helper_functions.c
-	# src/mcurs232/serial_port.c
+	src/uuid_help.c
 	)
 
 add_executable (${PROJECT_NAME} 

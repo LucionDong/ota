@@ -16,6 +16,7 @@
 // #define RECV_TOPIC "/sys/gatewaybrokercore/emlocalmqttt/thing/event/property/post"
 #define RECV_TOPIC "wan/+/+/thing/ota/#"
 #define SEND_TOPIC "/sys/esvcpm/mqtt/thing/event/property/post"
+#define SEND_TOPIC_SCRIPT "wan/tmp/tmp/thing/ota/shell/script/pushReply"
 #define ADDRESS "tcp://127.0.0.1:1883"
 // #define ADDRESS "mqtt://broker.emqx.io:1883"
 #define QOS 0
@@ -29,6 +30,7 @@ typedef enum command_type {
     SERVICE_INFORM_POST,
     UPGRADE_PUSH,
     UPGRADE_PROGRESS,
+    SHELL_SCRIPT_PUSH,
 } command_type_e;
 
 typedef struct mqtt_res {

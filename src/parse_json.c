@@ -18,9 +18,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "linux/uuid.h"
 #include "log.h"
 #include "mqtt_async_recv_send.h"
 #include "openssl/sha.h"
+#include "uuid_help.h"
 #include "version_hash.h"
 
 int check_download_file_exit() {
@@ -168,6 +170,8 @@ int command_string_to_enum(const char *method) {
         return UPGRADE_PUSH;
     } else if (!strcmp(method, "thing.ota.device.upgrade.progress")) {
         return UPGRADE_PROGRESS;
+    } else if (!strcmp(method, "thing.ota.shell.script.push")) {
+        return SHELL_SCRIPT_PUSH;
     }
 
     LOG_WARN("method is not need command");
@@ -230,5 +234,27 @@ int composition_reply_upgrade_progress_json(json_t *reply_json, const char *step
     json_object_set_new(reply_json, "version", json_string("1.0"));
     json_object_set_new(reply_json, "method", json_string("thing.ota.device.upgrade.progress"));
 
+    return 0;
+}
+
+int composition_reply_script_result_json(int code, json_t *reply_json, const char *result, const char *transid) {
+    LOG_INFO("result: %s", result);
+    json_t *params = json_object();
+
+    unsigned char uuid[16];
+    char *uuid_str = calloc(1, sizeof(char) * UUID_SIZE);
+    uuid_generate(uuid);
+    uuid_unparser(uuid, uuid_str);
+    LOG_INFO("uuid_str: %s", uuid_str);
+
+    json_object_set_new(params, "code", json_integer(code));
+    json_object_set_new(params, "result", json_string(result));
+    json_object_set_new(reply_json, "params", params);
+
+    json_object_set_new(reply_json, "id", json_string(uuid_str));
+    json_object_set_new(reply_json, "method", json_string("thing.ota.shell.script.pushReply"));
+    json_object_set_new(reply_json,"version",json_string("1.0"));
+
+    free(uuid_str);
     return 0;
 }
