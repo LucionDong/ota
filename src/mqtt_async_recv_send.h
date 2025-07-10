@@ -16,7 +16,8 @@
 // #define RECV_TOPIC "/sys/gatewaybrokercore/emlocalmqttt/thing/event/property/post"
 #define RECV_TOPIC "wan/+/+/thing/ota/#"
 #define SEND_TOPIC "/sys/esvcpm/mqtt/thing/event/property/post"
-#define SEND_TOPIC_SCRIPT "wan/tmp/tmp/thing/ota/shell/script/pushReply"
+#define SEND_TOPIC_SCRIPT "wan/thing/ota/shell/command/post"
+#define SEND_TOPIC_PROGRESS "wan/thing/ota/device/upgrade/progress"
 #define ADDRESS "tcp://127.0.0.1:1883"
 // #define ADDRESS "mqtt://broker.emqx.io:1883"
 #define QOS 0

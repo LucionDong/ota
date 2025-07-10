@@ -156,9 +156,9 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
             // 解析services中的内容
             // 上传版本号
             sprintf(send_topic, "%s/Reply", send_topic);
-            parser_service_inform_json_and_piece(root, hash);
+            parser_service_inform_json_and_piece(root, &hash);
             // 读取版本号,并将版本号替换掉hash表中的version
-            get_hash_file_path_and_read_version(hash);
+            get_hash_file_path_and_read_version(&hash);
             composition_reply_version_json(reply_json, hash);
             MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
 
@@ -178,7 +178,7 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
             // 对下载的文件进行校验
             // 按顺序调用脚本
             // 调用脚本过程中进行进度上报
-            replace_push_with_progress(send_topic);
+            // replace_push_with_progress(send_topic);
             url = json_string_value(json_object_get(params, "url"));
             if (!url) {
                 LOG_ERROR("json_string_value NULL");
@@ -193,13 +193,13 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
                 send_to_server_json = json_dumps(reply_json, 0);
                 pubmsg.payload = send_to_server_json;
                 pubmsg.payloadlen = strlen(send_to_server_json);
-                if (MQTTAsync_sendMessage(mqtt_res->client, send_topic, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
+                if (MQTTAsync_sendMessage(mqtt_res->client, SEND_TOPIC_PROGRESS, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
                     LOG_WARN("Failed to start sendMessage");
                 }
                 free(send_to_server_json);
             } else {
-                executive_control_sh(reply_json, mqtt_res, send_topic);
                 unpack_tar(DOWNLOAD_PATH);
+                executive_control_sh(reply_json, mqtt_res, send_topic);
                 system("find /usr/local/ota/ -mindepth 1 -not -name 'ota_update' -exec rm -rf {} +");
             }
             break;
@@ -265,10 +265,18 @@ int command_handle(json_t *root, mqtt_res_t *mqtt_res, const char *topic) {
                 send_to_server_json = json_dumps(reply_json, 0);
                 pubmsg.payload = send_to_server_json;
                 pubmsg.payloadlen = strlen(send_to_server_json);
+
+                // char script_topic[1024] = {0};
+                // strncpy(script_topic, topic, strlen(topic) - 4);
+                // sprintf(script_topic, "%s%s", script_topic, "post");
+                // LOG_DEBUG("script_topic: %s", script_topic);
+
                 if (MQTTAsync_sendMessage(mqtt_res->client, SEND_TOPIC_SCRIPT, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
                     LOG_WARN("Failed to start sendMessage");
                 }
-                LOG_INFO("reply_json: %s", json_dumps(reply_json, JSON_INDENT(2)));
+                char *reply_json_str = json_dumps(reply_json, JSON_INDENT(2));
+                LOG_INFO("reply_json: %s", reply_json_str);
+                free(reply_json_str);
                 free(send_to_server_json);
                 free(result_base64_str);
                 unlink(stript_path);
@@ -292,8 +300,7 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTAsync_message *me
     LOG_INFO("     topic: %.*s\n", topicLen, topicName);
     LOG_INFO("   message: %.*s\n", message->payloadlen, (char *) message->payload);
 
-    char *mqtt_message = malloc(sizeof(char) * (message->payloadlen + 1));
-    strncpy(mqtt_message, message->payload, message->payloadlen);
+    char *mqtt_message = strdup((char *) message->payload);
     LOG_INFO("mqtt_message: %s\n", mqtt_message);
 
     json_error_t error;

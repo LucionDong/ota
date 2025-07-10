@@ -121,33 +121,48 @@ int executive_control_sh(json_t *reply_json, mqtt_res_t *mqtt_res, const char *s
         return -1;
     }
 
-    system("./preinst.sh");
+    int sh_status = system("./preinst.sh");
+    if (sh_status == -1) {
+        LOG_ERROR("./preinst.sh error");
+        return -1;
+    }
+
     composition_reply_upgrade_progress_json(reply_json, "30");
     send_to_server_json = json_dumps(reply_json, 0);
     pubmsg.payload = send_to_server_json;
     pubmsg.payloadlen = strlen(send_to_server_json);
-    if (MQTTAsync_sendMessage(mqtt_res->client, send_topic, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
+    if (MQTTAsync_sendMessage(mqtt_res->client, SEND_TOPIC_PROGRESS, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
         LOG_WARN("Failed to start sendMessage");
     }
 
-    system("./postinst.sh");
+    sh_status = system("./postinst.sh");
+    if (sh_status == -1) {
+        LOG_ERROR("./postinst.sh error");
+        return -1;
+    }
+
     composition_reply_upgrade_progress_json(reply_json, "60");
     free(send_to_server_json);
     send_to_server_json = json_dumps(reply_json, 0);
     pubmsg.payload = send_to_server_json;
     pubmsg.payloadlen = strlen(send_to_server_json);
-    if (MQTTAsync_sendMessage(mqtt_res->client, send_topic, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
+    if (MQTTAsync_sendMessage(mqtt_res->client, SEND_TOPIC_PROGRESS, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
         LOG_WARN("Failed to start sendMessage");
     }
 
-    system("./prerm.sh");
+    sh_status = system("./prerm.sh");
+    if (sh_status == -1) {
+        LOG_ERROR("./prerm.sh error");
+        return -1;
+    }
+
     composition_reply_upgrade_progress_json(reply_json, "100");
     free(send_to_server_json);
     send_to_server_json = json_dumps(reply_json, 0);
     pubmsg.payload = send_to_server_json;
     pubmsg.payloadlen = strlen(send_to_server_json);
     // system("find /usr/local/ota/ -mindepth 1 -not -name 'ota_update' -exec rm -rf {} +");
-    if (MQTTAsync_sendMessage(mqtt_res->client, send_topic, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
+    if (MQTTAsync_sendMessage(mqtt_res->client, SEND_TOPIC_PROGRESS, &pubmsg, NULL) != MQTTASYNC_SUCCESS) {
         LOG_WARN("Failed to start sendMessage");
     }
 
@@ -178,9 +193,13 @@ int command_string_to_enum(const char *method) {
     return -1;
 }
 
-int parser_service_inform_json_and_piece(json_t *root, hash_element_t *hash) {
+int parser_service_inform_json_and_piece(json_t *root, hash_element_t **hash) {
     json_t *params = json_object_get(root, "params");
     json_t *services = json_object_get(params, "services");
+    char *services_str = json_dumps(services, JSON_INDENT(2));
+    LOG_DEBUG("services: %s", services_str);
+    free(services_str);
+
     json_t *services_array_value = NULL;
     size_t services_array_size;
 
@@ -253,7 +272,7 @@ int composition_reply_script_result_json(int code, json_t *reply_json, const cha
 
     json_object_set_new(reply_json, "id", json_string(uuid_str));
     json_object_set_new(reply_json, "method", json_string("thing.ota.shell.script.pushReply"));
-    json_object_set_new(reply_json,"version",json_string("1.0"));
+    json_object_set_new(reply_json, "version", json_string("1.0"));
 
     free(uuid_str);
     return 0;

@@ -58,14 +58,14 @@ int wget_install(const char *url, const char *recv_md5_string) {
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
-        //不验证对等方证书
+        // 不验证对等方证书
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        //不验证主机证书
+        // 不验证主机证书
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
         res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
-            perror("curl_easy_perform");
+            LOG_ERROR("res != CURLE_OK %d", res);
         }
         curl_easy_cleanup(curl);
         fclose(fp);

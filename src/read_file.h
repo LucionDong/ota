@@ -13,5 +13,5 @@
 #define VERSION_FILE_NAME "version"
 
 int read_version_file(char *version, const char *file_path);
-int get_hash_file_path_and_read_version(hash_element_t *hash);
+int get_hash_file_path_and_read_version(hash_element_t **hash);
 #endif /* !__READ_FILE_H__ */

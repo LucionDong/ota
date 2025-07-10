@@ -28,19 +28,18 @@
 #define SERVICE_FILE_PATH "/usr/local/iot/service/"
 #define UUID_SIZE 37
 
+#include "linux/uuid.h"
 #include "mqtt_async_recv_send.h"
 #include "uuid_help.h"
-#include "linux/uuid.h"
 void uuid_generate(unsigned char *uuid);
 
 int check_download_file_exit();
 int wget_url(mqtt_res_t *mqtt_res);
 int unpack_tar(const char *tar_path);
 int command_string_to_enum(const char *method);
-int parser_service_inform_json_and_piece(json_t *root, hash_element_t *hash);
+int parser_service_inform_json_and_piece(json_t *root, hash_element_t **hash);
 int composition_reply_version_json(json_t *reply_json, hash_element_t *hash);
 int composition_reply_upgrade_progress_json(json_t *reply_json, const char *step);
 int executive_control_sh(json_t *reply_json, mqtt_res_t *mqtt_res, const char *send_topic);
-int composition_reply_script_result_json(int code, json_t *reply_json, const char *result,
-                                         const char *transid);
+int composition_reply_script_result_json(int code, json_t *reply_json, const char *result, const char *transid);
 #endif /* !__PARSE_JSON_H__ */

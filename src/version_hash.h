@@ -11,8 +11,8 @@
 #include "ut_include/uthash.h"
 
 int find_hash_value(hash_element_t *hash, const char *service_name, char **version);
-int insert_hash_element(hash_element_t *hash, const char *service_name, char *version);
+int insert_hash_element(hash_element_t **hash, const char *service_name, char *version);
 int destroy_hash(hash_element_t **hash);
-int update_hash_value(hash_element_t *hash, const char *service_name, char *version);
+int update_hash_value(hash_element_t **hash, const char *service_name, char *version);
 
 #endif /* !__VERSION_HASH_H__ */

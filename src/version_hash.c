@@ -11,16 +11,17 @@
 #include "mqtt_async_recv_send.h"
 #include "ut_include/uthash.h"
 
-int insert_hash_element(hash_element_t *hash, const char *service_name, char *version) {
-    if (!hash) {
-        LOG_ERROR("hash is NULL");
-        return -1;
-    }
+int insert_hash_element(hash_element_t **hash, const char *service_name, char *version) {
+    // if (!hash) {
+    //     LOG_ERROR("hash is NULL");
+    //     return -1;
+    // }
 
     hash_element_t *hash_element = calloc(1, sizeof(hash_element_t));
     hash_element->service_name = strdup(service_name);
     hash_element->service_version = strdup(version);
-    HASH_ADD_KEYPTR(hh, hash, hash_element->service_name, strlen(hash_element->service_name), hash_element);
+    LOG_DEBUG("service_version: %s", hash_element->service_version);
+    HASH_ADD_KEYPTR(hh, *hash, hash_element->service_name, strlen(hash_element->service_name), hash_element);
 
     return 0;
 }
@@ -42,14 +43,14 @@ int find_hash_value(hash_element_t *hash, const char *service_name, char **versi
     return -1;
 }
 
-int update_hash_value(hash_element_t *hash, const char *service_name, char *version) {
+int update_hash_value(hash_element_t **hash, const char *service_name, char *version) {
     if (!hash) {
         LOG_ERROR("hash is NULL");
         return -1;
     }
 
     hash_element_t *hash_element = NULL;
-    HASH_FIND_STR(hash, service_name, hash_element);
+    HASH_FIND_STR(*hash, service_name, hash_element);
     if (hash_element && hash_element->service_version) {
         free(hash_element->service_version);
         hash_element->service_version = strdup(version);
